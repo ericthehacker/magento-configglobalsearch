@@ -27,7 +27,7 @@ class EW_ConfigGlobalSearch_Model_Search_Config extends Varien_Object
      * @param $pathSection
      * @param string $pathField
      */
-    protected function _addIfMatch(&$results, $title, $type, $pathTab, $pathSection, $pathField = '') {
+    protected function _addIfMatch(&$results, $title, $type, $sectionId, $pathTab, $pathSection, $pathField = '') {
         $title = (string)$title;
         $searchTitle = strtolower($title);
         $pathTab = (string)$pathTab;
@@ -49,14 +49,15 @@ class EW_ConfigGlobalSearch_Model_Search_Config extends Varien_Object
             $path .= ' -> ' . $pathField;
         }
 
+        //@TODO: translate labels
         $results[] = array(
-            'id'            => sprintf('config/%s/%s', $type, $path),
+            'id'            => sprintf('config/%s/%s', $type, $sectionId),
             'type'          => Mage::helper('adminhtml')->__('System Config ' . $type),
             'name'          => $title,
             'description'   => $path,
             'url' => Mage::helper('adminhtml')->getUrl(
-                'admin/system_config/edit',
-                array('section' => $pathSection)
+                '*/system_config/edit',
+                array('section' => $sectionId)
             )
         );
     }
@@ -77,13 +78,22 @@ class EW_ConfigGlobalSearch_Model_Search_Config extends Varien_Object
 
         /* @var $config Mage_Adminhtml_Model_Config */
         $config = Mage::getSingleton('adminhtml/config');
-
         $sections = (array)$config->getSections();
+        $session = Mage::getSingleton('admin/session');
 
-        foreach ($sections as $section) {
+        foreach ($sections as $sectionId => $section) {
             /* @var $section Varien_Simplexml_Element */
             if (!$this->_canShowField($section)) {
                 continue;
+            }
+
+            //check ACL for this section
+            $resourceLookup = "admin/system/config/{$sectionId}";
+            if ($session->getData('acl') instanceof Mage_Admin_Model_Acl) {
+                $resourceId = $session->getData('acl')->get($resourceLookup)->getResourceId();
+                if (!$session->isAllowed($resourceId)) {
+                    continue;
+                }
             }
 
             foreach ($section->groups as $groups){
@@ -95,7 +105,7 @@ class EW_ConfigGlobalSearch_Model_Search_Config extends Varien_Object
                         continue;
                     }
 
-                    $this->_addIfMatch($arr, $group->label, 'Group', $section->label, $group->label);
+                    $this->_addIfMatch($arr, $group->label, 'Group', $sectionId, $section->label, $group->label);
 
                     foreach($group->fields as $groupFields) {
                         $groupFields = (array)$groupFields;
@@ -105,7 +115,7 @@ class EW_ConfigGlobalSearch_Model_Search_Config extends Varien_Object
                                 continue;
                             }
 
-                            $this->_addIfMatch($arr, $field->label, 'Field', $section->label, $group->label, $field->label);
+                            $this->_addIfMatch($arr, $field->label, 'Field', $sectionId, $section->label, $group->label, $field->label);
                         } //end looping fields
                     } //end looping groupFields
                 } //end looping groups
