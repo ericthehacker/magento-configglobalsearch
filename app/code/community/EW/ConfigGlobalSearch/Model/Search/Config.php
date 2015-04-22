@@ -37,10 +37,6 @@ class EW_ConfigGlobalSearch_Model_Search_Config extends Varien_Object
 
         $query = strtolower($this->getQuery());
 
-        if($type == 'section') {
-            Mage::log($searchTitle);
-        }
-
         if(strpos($searchTitle, $query) === false) {
             return; // not a match
         }
