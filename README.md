@@ -11,9 +11,12 @@ to do the same type of search directly in the admin.
 
 ![Screenshot of Magento admin global search with system config results](https://ericwie.se/assets/img/work/magento-configglobalsearch-v2.png)
 
+## Features
+
+- Searches system config groups titles and individual fields names from admin global search.
+- Search results link directly to associated system config section.
+- Respects system config ACL -- results only contain sections for which the current admin user has permission to see.
 
 ## Known Issues:
 
-- I wrote this all in one evening. I would wait a day or two if I were you.
-- ACL is untested. Section-specific ACL settings *may* not be honored currently.
 - System config labels are currently untranslated.

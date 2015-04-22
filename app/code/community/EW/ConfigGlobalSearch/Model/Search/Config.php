@@ -23,6 +23,7 @@ class EW_ConfigGlobalSearch_Model_Search_Config extends Varien_Object
      * @param $results
      * @param $title
      * @param $type
+     * @param $sectionId
      * @param $pathTab
      * @param $pathSection
      * @param string $pathField
