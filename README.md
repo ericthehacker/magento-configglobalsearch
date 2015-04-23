@@ -16,7 +16,8 @@ to do the same type of search directly in the admin.
 - Searches system config groups titles and individual fields names from admin global search.
 - Search results link directly to associated system config section.
 - Respects system config ACL -- results only contain sections for which the current admin user has permission to see.
+- System config search results are localized.
 
 ## Known Issues:
 
-- System config labels are currently untranslated.
+- Config fields search query must be in English, even though results are localized.
