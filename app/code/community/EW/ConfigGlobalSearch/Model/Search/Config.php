@@ -2,6 +2,9 @@
 
 class EW_ConfigGlobalSearch_Model_Search_Config extends Varien_Object
 {
+    /** @var  Mage_Adminhtml_Model_Config */
+    protected $_config;
+
     /**
      * Determine if field should be shown in a global context
      *
@@ -28,7 +31,7 @@ class EW_ConfigGlobalSearch_Model_Search_Config extends Varien_Object
      * @param $pathSection
      * @param string $pathField
      */
-    protected function _addIfMatch(&$results, $title, $type, $sectionId, $pathTab, $pathSection, $pathField = '') {
+    protected function _addIfMatch(&$results, $title, $type, $sectionId, $groupId, $fieldId, $pathTab, $pathSection, $pathField = '') {
         $title = (string)$title;
         $searchTitle = strtolower($title);
         $pathTab = (string)$pathTab;
@@ -41,16 +44,26 @@ class EW_ConfigGlobalSearch_Model_Search_Config extends Varien_Object
             return; // not a match
         }
 
-        $path = sprintf('%s -> %s', $pathTab, $pathSection);
+        //Mage::log(sprintf('config/%s/%s/%s', $sectionId, $groupId, $fieldId));
+        $helper = $this->_config->getAttributeModule($sectionId, $groupId, $fieldId);
+        /* @var $helperInstance Mage_Core_Helper_Abstract */
+        $helperInstance = Mage::helper($helper);
+        //Mage::log($helper);
+
+        $path = sprintf(
+            '%s -> %s',
+            $helperInstance->__($pathTab),
+            $helperInstance->__($pathSection)
+        );
         if(!empty($pathField)) {
-            $path .= ' -> ' . $pathField;
+            $path .= ' -> ' . $helperInstance->__($pathField);
         }
 
         //@TODO: translate labels
         $results[] = array(
-            'id'            => sprintf('config/%s/%s', $type, $sectionId),
+            'id'            => sprintf('config/%s/%s', $groupId, $fieldId),
             'type'          => Mage::helper('adminhtml')->__('System Config ' . $type),
-            'name'          => $title,
+            'name'          => $helperInstance->__($title),
             'description'   => $path,
             'url' => Mage::helper('adminhtml')->getUrl(
                 '*/system_config/edit',
@@ -73,9 +86,8 @@ class EW_ConfigGlobalSearch_Model_Search_Config extends Varien_Object
             return $this;
         }
 
-        /* @var $config Mage_Adminhtml_Model_Config */
-        $config = Mage::getSingleton('adminhtml/config');
-        $sections = (array)$config->getSections();
+        $this->_config = Mage::getSingleton('adminhtml/config');
+        $sections = (array)$this->_config->getSections();
         $session = Mage::getSingleton('admin/session');
 
         foreach ($sections as $sectionId => $section) {
@@ -97,22 +109,22 @@ class EW_ConfigGlobalSearch_Model_Search_Config extends Varien_Object
                 $groups = (array)$groups;
 
                 /* @var $group Varien_Simplexml_Element */
-                foreach ($groups as $group){
+                foreach ($groups as $groupId => $group){
                     if (!$this->_canShowField($group)) {
                         continue;
                     }
 
-                    $this->_addIfMatch($arr, $group->label, 'Group', $sectionId, $section->label, $group->label);
+                    $this->_addIfMatch($arr, $group->label, 'Group', $sectionId, $groupId, null, $section->label, $group->label);
 
                     foreach($group->fields as $groupFields) {
                         $groupFields = (array)$groupFields;
 
-                        foreach($groupFields as $field) {
+                        foreach($groupFields as $fieldId => $field) {
                             if (!$this->_canShowField($field)) {
                                 continue;
                             }
 
-                            $this->_addIfMatch($arr, $field->label, 'Field', $sectionId, $section->label, $group->label, $field->label);
+                            $this->_addIfMatch($arr, $field->label, 'Field', $sectionId, $groupId, $fieldId, $section->label, $group->label, $field->label);
                         } //end looping fields
                     } //end looping groupFields
                 } //end looping groups
