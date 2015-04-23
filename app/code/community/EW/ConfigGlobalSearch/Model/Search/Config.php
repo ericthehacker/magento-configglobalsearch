@@ -32,6 +32,10 @@ class EW_ConfigGlobalSearch_Model_Search_Config extends Varien_Object
      * @param $field
      */
     protected function _addIfMatch(&$results, $title, $type, $section, $sectionId, $group, $field) {
+        if(count($results) >= $this->getLimit()) {
+            return; //we've reached limit -- bail.
+        }
+
         $title = (string)$title;
         $searchTitle = strtolower($title);
         $pathSection = (string)$section->label;
