@@ -26,17 +26,17 @@ class EW_ConfigGlobalSearch_Model_Search_Config extends Varien_Object
      * @param $results
      * @param $title
      * @param $type
+     * @param $section
      * @param $sectionId
-     * @param $pathTab
-     * @param $pathSection
-     * @param string $pathField
+     * @param $group
+     * @param $field
      */
-    protected function _addIfMatch(&$results, $title, $type, $sectionId, $groupId, $fieldId, $pathTab, $pathSection, $pathField = '') {
+    protected function _addIfMatch(&$results, $title, $type, $section, $sectionId, $group, $field) {
         $title = (string)$title;
         $searchTitle = strtolower($title);
-        $pathTab = (string)$pathTab;
-        $pathSection = (string)$pathSection;
-        $pathField = (string)$pathField;
+        $pathSection = (string)$section->label;
+        $pathGroup = (string)$group->label;
+        $pathField = is_null($field) ? '' : (string)$field->label;
 
         $query = strtolower($this->getQuery());
 
@@ -44,24 +44,21 @@ class EW_ConfigGlobalSearch_Model_Search_Config extends Varien_Object
             return; // not a match
         }
 
-        //Mage::log(sprintf('config/%s/%s/%s', $sectionId, $groupId, $fieldId));
-        $helper = $this->_config->getAttributeModule($sectionId, $groupId, $fieldId);
+        $helper = $this->_config->getAttributeModule($section, $group, $field);
         /* @var $helperInstance Mage_Core_Helper_Abstract */
         $helperInstance = Mage::helper($helper);
-        //Mage::log($helper);
 
         $path = sprintf(
             '%s -> %s',
-            $helperInstance->__($pathTab),
-            $helperInstance->__($pathSection)
+            $helperInstance->__($pathSection),
+            $helperInstance->__($pathGroup)
         );
         if(!empty($pathField)) {
             $path .= ' -> ' . $helperInstance->__($pathField);
         }
 
-        //@TODO: translate labels
         $results[] = array(
-            'id'            => sprintf('config/%s/%s', $groupId, $fieldId),
+            'id'            => sprintf('config/%s/%s', $pathSection, $pathField),
             'type'          => Mage::helper('adminhtml')->__('System Config ' . $type),
             'name'          => $helperInstance->__($title),
             'description'   => $path,
@@ -114,7 +111,7 @@ class EW_ConfigGlobalSearch_Model_Search_Config extends Varien_Object
                         continue;
                     }
 
-                    $this->_addIfMatch($arr, $group->label, 'Group', $sectionId, $groupId, null, $section->label, $group->label);
+                    $this->_addIfMatch($arr, $group->label, 'Group', $section, $sectionId, $group, null);
 
                     foreach($group->fields as $groupFields) {
                         $groupFields = (array)$groupFields;
@@ -124,7 +121,7 @@ class EW_ConfigGlobalSearch_Model_Search_Config extends Varien_Object
                                 continue;
                             }
 
-                            $this->_addIfMatch($arr, $field->label, 'Field', $sectionId, $groupId, $fieldId, $section->label, $group->label, $field->label);
+                            $this->_addIfMatch($arr, $field->label, 'Field', $section, $sectionId, $group, $field);
                         } //end looping fields
                     } //end looping groupFields
                 } //end looping groups
