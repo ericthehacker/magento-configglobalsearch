@@ -37,20 +37,21 @@ class EW_ConfigGlobalSearch_Model_Search_Config extends Varien_Object
         }
 
         $title = (string)$title;
-        $searchTitle = strtolower($title);
         $pathSection = (string)$section->label;
         $pathGroup = (string)$group->label;
         $pathField = is_null($field) ? '' : (string)$field->label;
 
-        $query = strtolower($this->getQuery());
-
-        if(strpos($searchTitle, $query) === false) {
-            return; // not a match
-        }
-
         $helper = $this->_config->getAttributeModule($section, $group, $field);
         /* @var $helperInstance Mage_Core_Helper_Abstract */
         $helperInstance = Mage::helper($helper);
+
+        $query = strtolower($this->getQuery());
+
+        $searchTitle = strtolower($title);
+        $localizedSearchTitle = strtolower($helperInstance->__($title));
+        if(strpos($searchTitle, $query) === false && strpos($localizedSearchTitle, $query) === false) {
+            return; // not a match
+        }
 
         $path = sprintf(
             '%s -> %s',
