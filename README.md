@@ -17,7 +17,4 @@ to do the same type of search directly in the admin.
 - Search results link directly to associated system config section.
 - Respects system config ACL -- results only contain sections for which the current admin user has permission to see.
 - System config search results are localized.
-
-## Known Issues:
-
-- Config fields search query must be in English, even though results are localized.
+- Supports both queries in either English or current admin locale.
